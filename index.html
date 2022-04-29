@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+	<title>Flight Price Prediction</title>
+
+	<!-- Google font -->
+	<link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet">
+
+	<!-- Bootstrap -->
+	<link type="text/css" rel="stylesheet" href="css/bootstrap.min.css" />
+
+	<!-- Custom stlylesheet -->
+	<link type="text/css" rel="stylesheet" href="css/style.css" />
+
+	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+
+		  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+		  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+
+</head>
+
+<body>
+	<div id="booking" class="section">
+		<div class="section-center">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-4">
+						<div class="booking-cta">
+							<h1>Flight Price Prediction</h1>
+							<!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate laboriosam numquam at</p> -->
+							<h2 style="font-weight:600;display:none;" id ='predictedPrice'>Predicted Price is </h2>
+						</div>
+					</div>
+					<div class="col-md-7 col-md-offset-1">
+						<div class="booking-form">
+							<form>
+								<div class="row">
+									<div class="col-md-6">
+										<div class="form-group">
+											<span class="form-label">Flying From</span>
+											<select class="form-control" id="source">
+												<option value="Delhi">Delhi</option>
+												<option value="Kolkata">Kolkata</option>
+												<option value="Mumbai">Mumbai</option>
+												<option value="Chennai">Chennai</option>
+											</select>
+											<span class="select-arrow"></span>
+										</div>
+									</div>
+									<div class="col-md-6">
+										<div class="form-group">
+											<span class="form-label">Flying To</span>
+											<select class="form-control" id="destination">
+												<option value="Cochin">Cochin</option>
+												<option value="Delhi">Delhi</option>
+												<option value="New Delhi">New Delhi</option>
+												<option value="Hyderabad">Hyderabad</option>
+												<option value="Kolkata">Kolkata</option>
+											</select>
+											<span class="select-arrow"></span>
+										</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-6">
+										<div class="form-group">
+											<span class="form-label">Departing</span>
+											<input class="form-control" type="datetime-local" id="departureTime"required>
+										</div>
+									</div>
+									<div class="col-md-6">
+										<div class="form-group">
+											<span class="form-label">Arrival</span>
+											<input class="form-control" type="datetime-local" id="arrivalTime" required>
+										</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-6">
+										<div class="form-group">
+											<span class="form-label">Stops</span>
+											<select class="form-control" id="stops">
+
+												<option value=0>0</option>
+												<option value=1>1</option>
+												<option value=2>2</option>
+												<option value=3>3</option>
+												<option value=4>4</option>
+											</select>
+											<span class="select-arrow"></span>
+										</div>
+									</div>
+									<div class="col-md-6">
+										<div class="form-group">
+											<span class="form-label">Airline</span>
+											<select class="form-control" id="airline">
+												<option value="Jet Airways">Jet Airways</option>
+												<option value="IndiGo">IndiGo</option>
+												<option value="Air India">Air India</option>
+												<option value="Multiple carriers">Multiple carriers</option>
+												<option value="SpiceJet">SpiceJet</option>
+												<option value="Vistara">Vistara</option>
+												<option value="Air Asia">Air Asia</option>
+												<option value="GoAir">GoAir</option>
+												<option value="Multiple carriers Premium economy">Multiple carriers Premium economy
+												</option>
+												<option value="Jet Airways Business">Jet Airways Business</option>
+												<option value="Vistara Premium economy">Vistara Premium economy</option>
+												<option value="Trujet">Trujet</option>
+											</select>
+											<span class="select-arrow"></span>
+										</div>
+									</div>
+									
+								</div>
+								<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.5.2/dist/tf.min.js"></script>
+
+								<script>
+									tf.loadLayersModel("Deep Neural Network/model.json").then(function(model) {
+									window.model = model;
+									console.log("Model loaded!!");
+									});
+
+									function predict(){
+										var input=[];
+										var totat_stops=document.getElementById('stops').value;
+
+										var dep_time = document.getElementById('departureTime').value;
+
+										var a = dep_time.split('T');
+										var b = a[0].split('-');
+
+										var journey_day = b[2];
+										var journey_month = b[1];
+										
+										var c = a[1].split(':');
+										var dep_hour = c[0];
+										var dep_min = c[1];
+
+										var arrival_time = document.getElementById('arrivalTime').value;
+
+										var a = arrival_time.split('T');
+										var b = a[1].split(':');
+
+										var arrival_hour = b[0];
+										var arrival_min = b[1];
+										
+										var temp1 =  parseInt(arrival_hour) - parseInt(dep_hour) ;
+										var duration = 0;
+										if (temp1>0){
+											duration = duration + temp1*60;
+										}
+										else{
+											duration = duration + (-1*temp1*60);
+										}
+										var temp2 =  parseInt(arrival_min) - parseInt(dep_min) ;
+										if (temp2>0){
+											duration = duration + temp2*60;
+										}
+										else{
+											duration = duration + (-1*temp2*60);
+										}
+
+										var airline = document.getElementById('airline').value;
+
+										if(airline=="Jet Airways"){
+											var jet_airways = 1;
+											var indigo = 0;
+											var air_india = 0;
+											var multiple_carriers = 0;
+											var spicejet = 0;
+											var vistara = 0;
+											var goair = 0;
+											var multiple_carriers_premium_economy = 0;
+											var jet_airways_business = 0;
+											var vistara_premium_economy = 0;
+											var trujet = 0;
+										}
+										else if (airline == 'IndiGo'){
+											var jet_airways = 0;
+											var indigo = 1;
+											var air_india = 0;
+											var multiple_carriers = 0;
+											var spicejet = 0;
+											var vistara = 0;
+											var goair = 0;
+											var multiple_carriers_premium_economy = 0;
+											var jet_airways_business = 0;
+											var vistara_premium_economy = 0;
+											var trujet = 0;
+										}
+										else if (airline == 'Air India'){
+											var jet_airways = 0;
+											var indigo = 0;
+											var air_india = 1;
+											var multiple_carriers = 0;
+											var spicejet = 0;
+											var vistara = 0;
+											var goair = 0;
+											var multiple_carriers_premium_economy = 0;
+											var jet_airways_business = 0;
+											var vistara_premium_economy = 0;
+											var trujet = 0;
+										}
+										else if (airline == 'Multiple carriers'){
+											var jet_airways = 0;
+											var indigo = 0;
+											var air_india = 0;
+											var multiple_carriers = 1;
+											var spicejet = 0;
+											var vistara = 0;
+											var goair = 0;
+											var multiple_carriers_premium_economy = 0;
+											var jet_airways_business = 0;
+											var vistara_premium_economy = 0;
+											var trujet = 0;
+										}
+										else if (airline == 'SpiceJet'){
+											var jet_airways = 0;
+											var indigo = 0;
+											var air_india = 0;
+											var multiple_carriers = 0;
+											var spicejet = 1;
+											var vistara = 0;
+											var goair = 0;
+											var multiple_carriers_premium_economy = 0;
+											var jet_airways_business = 0;
+											var vistara_premium_economy = 0;
+											var trujet = 0;
+										}
+										else if (airline == 'Vistara'){
+											var jet_airways = 0;
+											var indigo = 0;
+											var air_india = 0;
+											var multiple_carriers = 0;
+											var spicejet = 0;
+											var vistara = 1;
+											var goair = 0;
+											var multiple_carriers_premium_economy = 0;
+											var jet_airways_business = 0;
+											var vistara_premium_economy = 0;
+											var trujet = 0;
+										}
+										else if (airline == 'GoAir'){
+											var jet_airways = 0;
+											var indigo = 0;
+											var air_india = 0;
+											var multiple_carriers = 0;
+											var spicejet = 0;
+											var vistara = 0;
+											var goair = 1;
+											var multiple_carriers_premium_economy = 0;
+											var jet_airways_business = 0;
+											var vistara_premium_economy = 0;
+											var trujet = 0;
+										}
+										else if (airline == 'Multiple carriers Premium economy'){
+											var jet_airways = 0;
+											var indigo = 0;
+											var air_india = 0;
+											var multiple_carriers = 0;
+											var spicejet = 0;
+											var vistara = 0;
+											var goair = 0;
+											var multiple_carriers_premium_economy = 1;
+											var jet_airways_business = 0;
+											var vistara_premium_economy = 0;
+											var trujet = 0;
+										}
+										else if (airline == 'Jet Airways Business'){
+											var jet_airways = 0;
+											var indigo = 0;
+											var air_india = 0;
+											var multiple_carriers = 0;
+											var spicejet = 0;
+											var vistara = 0;
+											var goair = 0;
+											var multiple_carriers_premium_economy = 0;
+											var jet_airways_business = 1;
+											var vistara_premium_economy = 0;
+											var trujet = 0;
+										}
+										else if (airline == 'Vistara Premium economy'){
+											var jet_airways = 0;
+											var indigo = 0;
+											var air_india = 0;
+											var multiple_carriers = 0;
+											var spicejet = 0;
+											var vistara = 0;
+											var goair = 0;
+											var multiple_carriers_premium_economy = 0;
+											var jet_airways_business = 0;
+											var vistara_premium_economy = 1;
+											var trujet = 0;
+										}
+										else if (airline == 'Trujet'){
+											var jet_airways = 0;
+											var indigo = 0;
+											var air_india = 0;
+											var multiple_carriers = 0;
+											var spicejet = 0;
+											var vistara = 0;
+											var goair = 0;
+											var multiple_carriers_premium_economy = 0;
+											var jet_airways_business = 0;
+											var vistara_premium_economy = 0;
+											var trujet = 1;
+										}
+										else{
+											var jet_airways = 0;
+											var indigo = 0;
+											var air_india = 0;
+											var multiple_carriers = 0;
+											var spicejet = 0;
+											var vistara = 0;
+											var goair = 0;
+											var multiple_carriers_premium_economy = 0;
+											var jet_airways_business = 0;
+											var vistara_premium_economy = 0;
+											var trujet = 1;
+										}
+
+										source = document.getElementById('source').value;
+										if(source=="Delhi"){
+											var s_delhi = 1;
+											var s_kolkata = 0;
+											var s_mumbai = 0;
+											var s_chennai = 0;
+										}
+										else if(source=="Kolkata"){
+											var s_delhi = 0;
+											var s_kolkata = 1;
+											var s_mumbai = 0;
+											var s_chennai = 0;
+										}
+										else if(source=="Mumbai"){
+											var s_delhi = 0;
+											var s_kolkata = 0;
+											var s_mumbai = 1;
+											var s_chennai = 0;
+										}
+										else if(source=="Chennai"){
+											var s_delhi = 0;
+											var s_kolkata = 0;
+											var s_mumbai = 0;
+											var s_chennai = 1;
+										}
+										else{
+											var s_delhi = 0;
+											var s_kolkata = 0;
+											var s_mumbai = 0;
+											var s_chennai = 0;
+										}
+
+										var destination = document.getElementById('destination').value;
+
+										if(destination == 'Cochin'){
+											var d_cochin = 1;
+											var d_delhi = 0;
+											var d_new_delhi = 0;
+											var d_hyderabad = 0;
+											var d_kolkata = 0;
+										}
+										else if(destination == 'Delhi'){
+											var d_cochin = 0;
+											var d_delhi = 1;
+											var d_new_delhi = 0;
+											var d_hyderabad = 0;
+											var d_kolkata = 0;
+										}
+										else if(destination == 'New_Delhi'){
+											var d_cochin = 0;
+											var d_delhi = 0;
+											var d_new_delhi = 1;
+											var d_hyderabad = 0;
+											var d_kolkata = 0;
+										}
+										else if(destination == 'Hyderabad'){
+											var d_cochin = 0;
+											var d_delhi = 0;
+											var d_new_delhi = 0;
+											var d_hyderabad = 1;
+											var d_kolkata = 0;
+										}
+										else if(destination == 'Kolkata'){
+											var d_cochin = 0;
+											var d_delhi = 0;
+											var d_new_delhi = 0;
+											var d_hyderabad = 0;
+											var d_kolkata = 1;
+										}
+										else{
+											var d_cochin = 0;
+											var d_delhi = 0;
+											var d_new_delhi = 0;
+											var d_hyderabad = 0;
+											var d_kolkata = 0;
+										}	
+										input = [parseInt(duration), parseInt(totat_stops),parseInt(journey_day),parseInt(journey_month),parseInt(arrival_hour),parseInt(arrival_min),parseInt(dep_hour),parseInt(dep_min),parseInt(air_india),parseInt(goair),parseInt(indigo),parseInt(jet_airways),parseInt(jet_airways_business),parseInt(multiple_carriers),parseInt(multiple_carriers_premium_economy),parseInt(spicejet),parseInt(trujet),parseInt(vistara),parseInt(vistara_premium_economy),parseInt(s_chennai),parseInt(s_delhi),parseInt(s_kolkata),parseInt(s_mumbai),parseInt(d_cochin),parseInt(d_delhi),parseInt(d_delhi),parseInt(d_hyderabad),parseInt(d_kolkata),parseInt(d_new_delhi)];
+										
+										window.model.predict([tf.tensor(input).reshape([1,29])]).array().then(function(scores){
+											scores = scores[0];
+											//predicted = scores.indexOf(Math.max(...scores));
+											// $('#number').html(predicted);
+											//console.log(predicted);
+											console.log(scores[0]);
+											document.getElementById('predictedPrice').style.display='block';
+											document.getElementById('predictedPrice').innerHTML="Predicted Price is " + scores[0].toFixed(2).toString();
+										});
+
+									
+
+
+
+									}
+								</script>
+								<div class="form-btn">
+									<button class="submit-btn" type="button" onclick="predict()">Predict Price</button>
+								</div>
+								<!-- <button type="button" onclick="predict()">Predict Price</button> -->
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
